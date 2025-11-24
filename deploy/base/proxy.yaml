@@ -1,0 +1,221 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: image-rbac-proxy
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: image-rbac-proxy
+  namespace: image-rbac-proxy
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: image-rbac-proxy-token
+  namespace: image-rbac-proxy
+  annotations:
+    kubernetes.io/service-account.name: image-rbac-proxy
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-rbac-proxy
+  namespace: image-rbac-proxy
+data:
+  backend-url: https://quay.io
+  memcache-servers: memcache:11211
+  dex-client-id: image-rbac-proxy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-rbac-proxy
+  namespace: image-rbac-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-rbac-proxy
+  template:
+    metadata:
+      labels:
+        app: image-rbac-proxy
+    spec:
+      containers:
+      - name: image-rbac-proxy
+        image: quay.io/konflux-ci/image-rbac-proxy:latest
+        ports:
+        - containerPort: 4000
+          name: https
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /_ping
+            port: 4000
+            scheme: HTTPS
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          periodSeconds: 15
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /_ping
+            port: 4000
+            scheme: HTTPS
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+        env:
+        - name: QUAY_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: quay-robot-account
+              key: quay-username
+        - name: QUAY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: quay-robot-account
+              key: quay-password
+        - name: BACKEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: image-rbac-proxy
+              key: backend-url
+        - name: BACKEND_NAMESPACE
+          valueFrom:
+            configMapKeyRef:
+              name: image-rbac-proxy
+              key: backend-namespace
+        - name: CLUSTER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: image-rbac-proxy
+              key: cluster-url
+        - name: PROXY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: image-rbac-proxy
+              key: proxy-url
+        - name: MEMCACHE_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: image-rbac-proxy
+              key: memcache-servers
+        - name: OAUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: image-rbac-proxy-token
+              key: token
+        - name: DEX_URL
+          valueFrom:
+            configMapKeyRef:
+              name: image-rbac-proxy
+              key: dex-url
+        - name: DEX_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: image-rbac-proxy
+              key: dex-client-id
+        - name: DEX_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: image-proxy-client-secret
+              key: client-secret
+        volumeMounts:
+        - name: tls
+          mountPath: /certs
+        - name: trusted-ca
+          mountPath: /etc/ssl/certs
+          readOnly: true
+      - name: memcache
+        image: memcached:1.6.39
+        ports:
+        - containerPort: 11211
+          name: memcache
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        args:
+        - "-m"
+        - "64"
+      volumes:
+      - name: tls
+        secret:
+          secretName: proxy-tls
+      - name: trusted-ca
+        configMap:
+          name: trusted-ca
+          items:
+            - key: ca-bundle.crt
+              path: ca-bundle.crt
+          optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-rbac-proxy
+  namespace: image-rbac-proxy
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: proxy-tls
+spec:
+  selector:
+    app: image-rbac-proxy
+  ports:
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 4000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memcache
+  namespace: image-rbac-proxy
+spec:
+  selector:
+    app: image-rbac-proxy
+  ports:
+  - name: memcache
+    protocol: TCP
+    port: 11211
+    targetPort: 11211
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: image-rbac-proxy
+rules:
+- apiGroups: ["authentication.k8s.io"]
+  resources: ["tokenreviews"]
+  verbs: ["create"]
+- apiGroups: ["authorization.k8s.io"]
+  resources: ["subjectaccessreviews"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: image-rbac-proxy
+subjects:
+- kind: ServiceAccount
+  name: image-rbac-proxy
+  namespace: image-rbac-proxy
+roleRef:
+  kind: ClusterRole
+  name: image-rbac-proxy

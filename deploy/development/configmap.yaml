@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-rbac-proxy
+  namespace: image-rbac-proxy
+data:
+  backend-namespace: mynamespace
+  cluster-url: mycluster
+  proxy-url: myproxy
+  dex-url: mydex
