@@ -9,9 +9,9 @@ require (
 	github.com/google/go-containerregistry v0.20.6
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/oauth2 v0.30.0
-	k8s.io/api v0.34.0
-	k8s.io/apimachinery v0.34.0
-	k8s.io/client-go v0.34.0
+	k8s.io/api v0.34.2
+	k8s.io/apimachinery v0.34.2
+	k8s.io/client-go v0.34.2
 )
 
 require (
