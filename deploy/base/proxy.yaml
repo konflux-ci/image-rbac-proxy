@@ -77,6 +77,9 @@ spec:
           periodSeconds: 30
           successThreshold: 1
           failureThreshold: 3
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
         env:
         - name: QUAY_USERNAME
           valueFrom:
@@ -151,6 +154,10 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1001
         args:
         - "-m"
         - "64"
