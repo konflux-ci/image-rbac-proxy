@@ -157,7 +157,6 @@ spec:
         securityContext:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
-          runAsUser: 1000930000
         args:
         - "-m"
         - "64"
