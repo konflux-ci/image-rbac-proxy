@@ -64,7 +64,6 @@ func VerifyServiceAccount(token string) string {
 	tr := &authenticationv1.TokenReview{
 		Spec: authenticationv1.TokenReviewSpec{
 			Token:     token,
-			Audiences: []string{"https://kubernetes.default.svc.cluster.local"},
 		},
 	}
 	response, err := client.AuthenticationV1().TokenReviews().Create(context.Background(), tr, metav1.CreateOptions{})
