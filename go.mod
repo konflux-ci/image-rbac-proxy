@@ -1,6 +1,6 @@
 module image-rbac-proxy
 
-go 1.24.6
+go 1.25.0
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
@@ -9,9 +9,9 @@ require (
 	github.com/google/go-containerregistry v0.20.7
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/oauth2 v0.34.0
-	k8s.io/api v0.34.3
-	k8s.io/apimachinery v0.34.3
-	k8s.io/client-go v0.34.3
+	k8s.io/api v0.35.0
+	k8s.io/apimachinery v0.35.0
+	k8s.io/client-go v0.35.0
 )
 
 require (
@@ -37,7 +37,6 @@ require (
 	github.com/go-openapi/swag/stringutils v0.25.4 // indirect
 	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
 	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
