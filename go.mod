@@ -7,7 +7,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/go-containerregistry v0.20.7
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	golang.org/x/oauth2 v0.34.0
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
