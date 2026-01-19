@@ -29,7 +29,7 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	if claims != nil {
 		if claims.Issuer == os.Getenv("DEX_URL") {
 			// Verify user's token issued by dex
-			username = VerifyIDToken(token)
+			username, _ = VerifyIDToken(token)
 		} else {
 			// Verify serive account's token issued by OpenShift
 			username = VerifyServiceAccount(token)

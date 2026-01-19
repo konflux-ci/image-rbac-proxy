@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"slices"
 
 	"image-rbac-proxy/pkg/tests"
 )
@@ -54,10 +55,14 @@ func TestVerifyIDToken(t *testing.T) {
 	defer mockServer.Close()
 	os.Setenv("DEX_URL", mockServer.Server.URL)
 	os.Setenv("DEX_CLIENT_ID", "test-client")
-	token, _ := mockServer.GenIDToken("test-client", "user1")
+	token, _ := mockServer.GenIDToken("test-client", "user1", []string{"group1", "group2"})
 
-	email := VerifyIDToken(token)
+	email, groups := VerifyIDToken(token)
+
 	if email != "user1" {
 		t.Errorf("Incorrect email: %s", email)
+	}
+	if !slices.Equal(groups, []string{"group1", "group2"}){
+		t.Errorf("Incorrect groups: %s", groups)
 	}
 }
