@@ -34,7 +34,7 @@ func getOauthConfig() oauth2.Config {
 		ClientSecret: os.Getenv("DEX_CLIENT_SECRET"),
 		RedirectURL:  os.Getenv("PROXY_URL") + "/oauth/callback",
 		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "email"},
+		Scopes:       []string{oidc.ScopeOpenID, "email", "groups"},
 	}
 
 	return oauth2Config
@@ -83,22 +83,23 @@ func OauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(rawIDToken))
 }
 
-func VerifyIDToken(token string) string {
+func VerifyIDToken(token string) (string, []string) {
 	provider := newProvider()
 	if provider == nil {
-		return ""
+		return "", []string{}
 	}
 	idTokenVerifier := provider.Verifier(&oidc.Config{ClientID: os.Getenv("DEX_CLIENT_ID")})
 	idToken, err := idTokenVerifier.Verify(context.Background(), token)
 	if err != nil {
 		logrus.Errorf("Error verifying token: %s", err)
-		return ""
+		return "", []string{}
 	}
 
 	// Extract name
 	var claims struct {
-		Email  string  `json:"email"`
+		Email  string   `json:"email"`
+		Groups []string `json:"groups"`
 	}
 	idToken.Claims(&claims)
-	return claims.Email
+	return claims.Email, claims.Groups
 }

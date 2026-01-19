@@ -94,15 +94,16 @@ func (m *MockOIDCServer) Close() {
 }
 
 // GenIDToken creates a valid signed JWT token for testing
-func (m *MockOIDCServer) GenIDToken(clientID, email string) (string, error) {
+func (m *MockOIDCServer) GenIDToken(clientID, email string, groups []string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
-		"iss":   m.Server.URL,
-		"sub":   "test",
-		"aud":   clientID,
-		"exp":   now.Add(time.Hour).Unix(),
-		"iat":   now.Unix(),
-		"email": email,
+		"iss":    m.Server.URL,
+		"sub":    "test",
+		"aud":    clientID,
+		"exp":    now.Add(time.Hour).Unix(),
+		"iat":    now.Unix(),
+		"email":  email,
+		"groups": groups,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
