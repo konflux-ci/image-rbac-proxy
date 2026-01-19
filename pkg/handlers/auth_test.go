@@ -83,7 +83,7 @@ func TestAuthHandlerUser(t *testing.T) {
 	defer mockServer.Close()
 	os.Setenv("DEX_URL", mockServer.Server.URL)
 	os.Setenv("DEX_CLIENT_ID", "test-client")
-	token, _ := mockServer.GenIDToken("test-client", "user1")
+	token, _ := mockServer.GenIDToken("test-client", "user1", []string{"group1", "group2"})
 	r.Header.Set("Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte("user1:" + token)))
 
 	rr := httptest.NewRecorder()

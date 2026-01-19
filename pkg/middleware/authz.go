@@ -49,12 +49,13 @@ func Authz(next http.Handler) http.Handler {
 				}
 
 				// Get username from token
-				username := ""
+				var username string
+				var groups []string
 				claims := utils.TokenClaims(token)
 				if claims != nil {
 					if claims.Issuer == os.Getenv("DEX_URL") {
 						// Verify user's token issued by dex
-						username = handlers.VerifyIDToken(token)
+						username, groups = handlers.VerifyIDToken(token)
 					} else {
 						// Verify serive account's token issued by OpenShift
 						username = handlers.VerifyServiceAccount(token)
@@ -66,7 +67,7 @@ func Authz(next http.Handler) http.Handler {
 				}
 
 				// Check permission of the user
-				authorized := verifyUserPremission(username, ocp_namespace)
+				authorized := verifyUserPremission(username, groups, ocp_namespace)
 				if !authorized {
 					utils.ErrorHTTPResponse(w, utils.Unauthorized, "You do not have permission to read imagerepositories in " + ocp_namespace)
 					return
@@ -89,7 +90,7 @@ func getToken(r *http.Request) (string) {
 	return token
 }
 
-func verifyUserPremission(user, namespace string) bool {
+func verifyUserPremission(user string, groups []string, namespace string) bool {
 	authorized := false
 	config := &rest.Config{
 		Host:        os.Getenv("CLUSTER_URL"),
@@ -110,6 +111,7 @@ func verifyUserPremission(user, namespace string) bool {
 		sar := &authorizationv1.SubjectAccessReview{
 			Spec: authorizationv1.SubjectAccessReviewSpec{
 				User:               user,
+				Groups:             groups,
 				ResourceAttributes: &authorizationv1.ResourceAttributes{
 					Group:     "appstudio.redhat.com",
 					Version:   "v1alpha1",
