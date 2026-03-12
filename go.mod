@@ -1,12 +1,12 @@
 module image-rbac-proxy
 
-go 1.25.0
+go 1.25.6
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/google/go-containerregistry v0.20.7
+	github.com/google/go-containerregistry v0.21.2
 	github.com/sirupsen/logrus v1.9.4
 	golang.org/x/oauth2 v0.36.0
 	k8s.io/api v0.35.2
