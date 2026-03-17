@@ -9,6 +9,8 @@ on:
 jobs:
   unit-test:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
     - uses: actions/checkout@v4
 
@@ -18,4 +20,12 @@ jobs:
         go-version: '1.24.6'
 
     - name: Test
-      run: go test -v ./...
+      run: go test -v -coverprofile=coverage.out ./pkg/handlers/... ./pkg/middleware/... ./pkg/utils/...
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        use_oidc: true
+        flags: unit-tests
+        files: coverage.out
+        fail_ci_if_error: false
