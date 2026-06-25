@@ -14,9 +14,9 @@ var BackendRegistry *BackendProxy
 
 // BackendProxy is a ReverseProxy pointer for the backend registry
 type BackendProxy struct {
-	URL       string
-	Proxy     *httputil.ReverseProxy
-	Auth      BackendAuth
+	URL   string
+	Proxy *httputil.ReverseProxy
+	Auth  BackendAuth
 }
 
 // BackendAuth provides methods to authenticate to a backend registry
@@ -65,7 +65,6 @@ func (bp *BackendProxy) Initialize(r *http.Request) {
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
 			logrus.WithError(err).Error("Backend request failed")
 			utils.ErrorHTTPResponse(w, utils.Unavailable, "Server error encountered while handling request")
-			return
 		},
 	}
 }
