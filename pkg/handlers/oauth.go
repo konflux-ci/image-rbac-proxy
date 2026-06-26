@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"context"
-	"os"
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
+	"os"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/sirupsen/logrus"
@@ -80,7 +80,7 @@ func OauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(rawIDToken))
+	_, _ = w.Write([]byte(rawIDToken)) // #nosec G705 -- OAuth callback intentionally returns the raw ID token
 }
 
 func VerifyIDToken(token string) (string, []string) {
@@ -100,6 +100,9 @@ func VerifyIDToken(token string) (string, []string) {
 		Email  string   `json:"email"`
 		Groups []string `json:"groups"`
 	}
-	idToken.Claims(&claims)
+	if err := idToken.Claims(&claims); err != nil {
+		logrus.Errorf("Error extracting claims from token: %s", err)
+		return "", []string{}
+	}
 	return claims.Email, claims.Groups
 }

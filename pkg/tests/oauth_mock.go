@@ -16,11 +16,11 @@ import (
 
 // MockOIDCServer creates a mock OIDC/OAuth2 server for testing
 type MockOIDCServer struct {
-	Server          *httptest.Server
-	TokenResponse   *oauth2.Token
-	IDToken         string
-        privateKey      *rsa.PrivateKey
-        publicKey       *rsa.PublicKey
+	Server        *httptest.Server
+	TokenResponse *oauth2.Token
+	IDToken       string
+	privateKey    *rsa.PrivateKey
+	publicKey     *rsa.PublicKey
 }
 
 // NewMockOIDCServer creates a new mock OIDC server
@@ -31,7 +31,7 @@ func NewMockOIDCServer() *MockOIDCServer {
 	mock := &MockOIDCServer{
 		IDToken: "mock-id-token",
 		TokenResponse: &oauth2.Token{
-			AccessToken:  "mock-access-token",
+			AccessToken: "mock-access-token",
 		},
 		privateKey: privateKey,
 		publicKey:  &privateKey.PublicKey,
@@ -49,17 +49,17 @@ func NewMockOIDCServer() *MockOIDCServer {
 			"userinfo_endpoint":      mock.Server.URL + "/userinfo",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(config)
+		_ = json.NewEncoder(w).Encode(config)
 	})
 
 	// Token endpoint
 	mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
-			"access_token":  mock.TokenResponse.AccessToken,
-			"id_token":      mock.IDToken,
+			"access_token": mock.TokenResponse.AccessToken,
+			"id_token":     mock.IDToken,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	})
 
 	// JWKS endpoint (for token verification)
@@ -81,7 +81,7 @@ func NewMockOIDCServer() *MockOIDCServer {
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(keys)
+		_ = json.NewEncoder(w).Encode(keys)
 	})
 
 	mock.Server = httptest.NewServer(mux)
