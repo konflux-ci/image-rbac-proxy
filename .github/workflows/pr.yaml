@@ -91,7 +91,7 @@ jobs:
         run: |
           go test -v -coverprofile=coverage.out ./pkg/handlers/... ./pkg/middleware/... ./pkg/utils/...
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           use_oidc: true
           flags: unit-tests
