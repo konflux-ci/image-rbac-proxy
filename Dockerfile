@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi10/go-toolset:1.26.3
+FROM registry.access.redhat.com/ubi10/go-toolset:1.26.3-1782379481
 WORKDIR /opt/app-root/src
 COPY . .
 LABEL name="Konflux Image RBAC Proxy"
