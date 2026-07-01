@@ -9,27 +9,27 @@ import (
 
 func TestIsValidToken(t *testing.T) {
 	tokenTests := []struct {
-		name string
+		name  string
 		token string
 		valid bool
 	}{
 		{
-			name: "Valid token",
+			name:  "Valid token",
 			token: tests.GenToken(time.Now(), "bar"),
 			valid: true,
 		},
 		{
-			name: "Expired token",
-			token: tests.GenToken(time.Now().Add(-24 * time.Hour), "bar"),
+			name:  "Expired token",
+			token: tests.GenToken(time.Now().Add(-24*time.Hour), "bar"),
 			valid: false,
 		},
 		{
-			name: "Not yet valid token",
-			token: tests.GenToken(time.Now().Add(24 * time.Hour), "bar"),
+			name:  "Not yet valid token",
+			token: tests.GenToken(time.Now().Add(24*time.Hour), "bar"),
 			valid: false,
 		},
 		{
-			name: "Invalid token",
+			name:  "Invalid token",
 			token: "123",
 			valid: false,
 		},

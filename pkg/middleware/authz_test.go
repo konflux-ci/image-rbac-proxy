@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -24,7 +23,7 @@ func TestAuthzSkip(t *testing.T) {
 }
 
 func TestAuthzNoToken(t *testing.T) {
-	os.Setenv("PROXY_URL", "https://fakeproxy")
+	t.Setenv("PROXY_URL", "https://fakeproxy")
 	r := httptest.NewRequest("GET", "/v2/foobar/manifests/latest", nil)
 	rr := httptest.NewRecorder()
 	authzHandler.ServeHTTP(rr, r)
@@ -50,7 +49,7 @@ func TestAuthzInvalidNamespace(t *testing.T) {
 	r := httptest.NewRequest("GET", "/v2/namespace2/repo1/manifests/latest", nil)
 	r.Header.Set("Authorization", "Bearer valid-token")
 	rr := httptest.NewRecorder()
-	os.Setenv("BACKEND_NAMESPACE", "namespace1")
+	t.Setenv("BACKEND_NAMESPACE", "namespace1")
 	authzHandler.ServeHTTP(rr, r)
 	if rr.Code != http.StatusUnauthorized {
 		t.Errorf("Expected code %d, but got %d", http.StatusUnauthorized, rr.Code)
@@ -60,8 +59,8 @@ func TestAuthzInvalidNamespace(t *testing.T) {
 func TestAuthz(t *testing.T) {
 	r := httptest.NewRequest("GET", "/v2/namespace1/repo1/manifests/latest", nil)
 	token := tests.GenToken(time.Now(), "bar")
-	r.Header.Set("Authorization", "Bearer " + token)
-	os.Setenv("BACKEND_NAMESPACE", "namespace1")
+	r.Header.Set("Authorization", "Bearer "+token)
+	t.Setenv("BACKEND_NAMESPACE", "namespace1")
 
 	authzTests := []struct {
 		name              string
@@ -70,7 +69,7 @@ func TestAuthz(t *testing.T) {
 	}{
 		{
 			name: "Successful authorization",
-			openshiftResponse: []tests.Response {
+			openshiftResponse: []tests.Response{
 				{
 					200,
 					tests.TrResponse(true, "user1"),
@@ -84,7 +83,7 @@ func TestAuthz(t *testing.T) {
 		},
 		{
 			name: "Denied authorization",
-			openshiftResponse: []tests.Response {
+			openshiftResponse: []tests.Response{
 				{
 					200,
 					tests.TrResponse(true, "user1"),
@@ -98,7 +97,7 @@ func TestAuthz(t *testing.T) {
 		},
 		{
 			name: "SubjectAccessReview call failure",
-			openshiftResponse: []tests.Response {
+			openshiftResponse: []tests.Response{
 				{
 					200,
 					tests.TrResponse(true, "user1"),
@@ -115,7 +114,7 @@ func TestAuthz(t *testing.T) {
 	for _, tt := range authzTests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := tests.SimulateOpenShiftMaster(tt.openshiftResponse)
-			os.Setenv("CLUSTER_URL", server.URL)
+			t.Setenv("CLUSTER_URL", server.URL)
 			rr := httptest.NewRecorder()
 			authzHandler.ServeHTTP(rr, r)
 

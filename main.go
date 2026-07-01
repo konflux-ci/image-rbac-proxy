@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,8 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"image-rbac-proxy/pkg/handlers"
-	"image-rbac-proxy/pkg/utils"
 	mw "image-rbac-proxy/pkg/middleware"
+	"image-rbac-proxy/pkg/utils"
 )
 
 func main() {
@@ -38,13 +37,14 @@ func main() {
 	proxy.HandleFunc("/oauth/callback", handlers.OauthCallbackHandler)
 
 	// Configure server based on settings
-	bind := fmt.Sprintf("0.0.0.0:4000")
+	bind := "0.0.0.0:4000"
 	lw := logrus.StandardLogger().Writer()
-	defer lw.Close()
+	defer func() { _ = lw.Close() }()
 	srv := &http.Server{
-		Addr:         bind,
-		Handler:      proxy,
-		ErrorLog:     log.New(lw, "", 0),
+		Addr:              bind,
+		Handler:           proxy,
+		ErrorLog:          log.New(lw, "", 0),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	// Start server
@@ -56,9 +56,7 @@ func initBackendProxy() {
 	url := os.Getenv("BACKEND_URL")
 	username := os.Getenv("QUAY_USERNAME")
 	password := os.Getenv("QUAY_PASSWORD")
-		
-	var auth handlers.BackendAuth
-	auth = handlers.NewTokenAuth(username, password)
+
 	logrus.Printf("Adding registry backend with URL %s", url)
-	handlers.BackendRegistry = &handlers.BackendProxy{URL: url, Auth: auth}
+	handlers.BackendRegistry = &handlers.BackendProxy{URL: url, Auth: handlers.NewTokenAuth(username, password)}
 }

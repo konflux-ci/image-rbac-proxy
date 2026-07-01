@@ -22,7 +22,7 @@ func originAuthServer(token string) *httptest.Server {
 				w.WriteHeader(http.StatusUnauthorized)
 			} else {
 				tokenResp, _ := json.Marshal(tokenResponse{Token: token})
-				w.Write(tokenResp)
+				_, _ = w.Write(tokenResp)
 			}
 		} else {
 			realm := originServer + "/v2/auth"
@@ -46,9 +46,11 @@ func TestAuthorizationHeader(t *testing.T) {
 	auth := NewTokenAuth("test", "test")
 	receivedToken, _ := auth.AuthorizationHeader(&bp, "foobar")
 	var cachedToken string
-	utils.CacheClient.Get("foobar", &cachedToken)
+	if err := utils.CacheClient.Get("foobar", &cachedToken); err != nil {
+		t.Fatalf("failed to get cached token: %v", err)
+	}
 
-	if receivedToken != "Bearer " + token {
+	if receivedToken != "Bearer "+token {
 		t.Errorf("Expected token %s, but got %s", token, receivedToken)
 	}
 	if cachedToken != token {
@@ -87,7 +89,7 @@ func TestAuthorizationHeaderNoChallenge(t *testing.T) {
 
 	bp := BackendProxy{URL: origin.URL}
 	auth := NewTokenAuth("test", "test")
-	_, err := auth.AuthorizationHeader( &bp, "foobar")
+	_, err := auth.AuthorizationHeader(&bp, "foobar")
 
 	if !strings.Contains(err.Error(), "no auth challenge presented by backend registry") {
 		t.Errorf("Unexpected error %s", err.Error())
@@ -160,13 +162,15 @@ func TestAuthorizationHeaderBadTokenResponse(t *testing.T) {
 func TestAuthorizationHeaderCachedToken(t *testing.T) {
 	token := tests.GenToken(time.Now(), "quay")
 	utils.CacheClient = &tests.MockCache{}
-	utils.CacheClient.Set("foobar", token, 1)
+	if err := utils.CacheClient.Set("foobar", token, 1); err != nil {
+		t.Fatalf("failed to set cached token: %v", err)
+	}
 
 	bp := BackendProxy{}
 	auth := NewTokenAuth("test", "test")
 	got, _ := auth.AuthorizationHeader(&bp, "foobar")
 
-	if  got != "Bearer " + token {
+	if got != "Bearer "+token {
 		t.Errorf("Expected token %s, but got %s", token, got)
 	}
 }
