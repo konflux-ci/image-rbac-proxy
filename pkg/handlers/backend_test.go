@@ -17,7 +17,7 @@ func TestRegistryHandlerNoAuth(t *testing.T) {
 }
 
 type TestAuth struct {
-	username    string
+	username string
 }
 
 func NewTestAuth(user string) *TestAuth {
@@ -27,25 +27,25 @@ func NewTestAuth(user string) *TestAuth {
 func (a *TestAuth) AuthorizationHeader(bp *BackendProxy, repo string) (string, error) {
 	if a.username != "" {
 		return "Bearer token-for-" + a.username + "-" + repo, nil
-	} 
+	}
 	return "", errors.New("registry error")
-	
+
 }
 
 func TestRegistryHandler(t *testing.T) {
-	registryTests := []struct{
+	registryTests := []struct {
 		name           string
 		username       string
 		expectedStatus int
 	}{
 		{
-			name: "Token auth succeeds",
-			username: "test",
+			name:           "Token auth succeeds",
+			username:       "test",
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name: "Token auth fails",
-			username: "",
+			name:           "Token auth fails",
+			username:       "",
 			expectedStatus: http.StatusServiceUnavailable,
 		},
 	}

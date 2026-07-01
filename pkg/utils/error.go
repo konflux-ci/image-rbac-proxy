@@ -50,5 +50,5 @@ func ErrorHTTPResponse(w http.ResponseWriter, ec string, msg string) {
 	w.Header().Add("Content-Type", "application/json")
 	w.Header().Add("Docker-Distribution-API-Version", "registry/2.0")
 	w.WriteHeader(status)
-	w.Write([]byte(body))
+	_, _ = w.Write([]byte(body))
 }
