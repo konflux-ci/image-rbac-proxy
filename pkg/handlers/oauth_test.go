@@ -3,9 +3,8 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"testing"
 	"slices"
+	"testing"
 
 	"image-rbac-proxy/pkg/tests"
 )
@@ -15,10 +14,10 @@ func TestOauthHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	mockServer := tests.NewMockOIDCServer()
 	defer mockServer.Close()
-	os.Setenv("DEX_URL", mockServer.Server.URL)
-	os.Setenv("DEX_CLIENT_ID", "test-client")
-	os.Setenv("DEX_CLIENT_SECRET", "test-secret")
-	os.Setenv("PROXY_URL", "https://fakeproxy")
+	t.Setenv("DEX_URL", mockServer.Server.URL)
+	t.Setenv("DEX_CLIENT_ID", "test-client")
+	t.Setenv("DEX_CLIENT_SECRET", "test-secret")
+	t.Setenv("PROXY_URL", "https://fakeproxy")
 
 	OauthHandler(rr, r)
 	if rr.Code != http.StatusFound {
@@ -35,10 +34,10 @@ func TestOauthCallbackHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	mockServer := tests.NewMockOIDCServer()
 	defer mockServer.Close()
-	os.Setenv("DEX_URL", mockServer.Server.URL)
-	os.Setenv("DEX_CLIENT_ID", "test-client")
-	os.Setenv("DEX_CLIENT_SECRET", "test-secret")
-	os.Setenv("PROXY_URL", "https://fakeproxy")
+	t.Setenv("DEX_URL", mockServer.Server.URL)
+	t.Setenv("DEX_CLIENT_ID", "test-client")
+	t.Setenv("DEX_CLIENT_SECRET", "test-secret")
+	t.Setenv("PROXY_URL", "https://fakeproxy")
 
 	OauthCallbackHandler(rr, r)
 	if rr.Code != http.StatusOK {
@@ -53,8 +52,8 @@ func TestOauthCallbackHandler(t *testing.T) {
 func TestVerifyIDToken(t *testing.T) {
 	mockServer := tests.NewMockOIDCServer()
 	defer mockServer.Close()
-	os.Setenv("DEX_URL", mockServer.Server.URL)
-	os.Setenv("DEX_CLIENT_ID", "test-client")
+	t.Setenv("DEX_URL", mockServer.Server.URL)
+	t.Setenv("DEX_CLIENT_ID", "test-client")
 	token, _ := mockServer.GenIDToken("test-client", "user1", []string{"group1", "group2"})
 
 	email, groups := VerifyIDToken(token)
@@ -62,7 +61,7 @@ func TestVerifyIDToken(t *testing.T) {
 	if email != "user1" {
 		t.Errorf("Incorrect email: %s", email)
 	}
-	if !slices.Equal(groups, []string{"group1", "group2"}){
+	if !slices.Equal(groups, []string{"group1", "group2"}) {
 		t.Errorf("Incorrect groups: %s", groups)
 	}
 }

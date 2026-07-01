@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -24,7 +23,7 @@ func TestAuthHandlerNoToken(t *testing.T) {
 func TestAuthHandlerServiceAccount(t *testing.T) {
 	r := httptest.NewRequest("GET", "/auth", nil)
 	token := tests.GenToken(time.Now(), "bar")
-	r.Header.Set("Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte("foo:" + token)))
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("foo:"+token)))
 
 	authTests := []struct {
 		name              string
@@ -33,7 +32,7 @@ func TestAuthHandlerServiceAccount(t *testing.T) {
 	}{
 		{
 			name: "Successful authentication",
-			openshiftResponse: []tests.Response {
+			openshiftResponse: []tests.Response{
 				{
 					200,
 					tests.TrResponse(true, "user1"),
@@ -43,7 +42,7 @@ func TestAuthHandlerServiceAccount(t *testing.T) {
 		},
 		{
 			name: "TokenReview call failure",
-			openshiftResponse: []tests.Response {
+			openshiftResponse: []tests.Response{
 				{
 					500,
 					"Internal server error",
@@ -56,7 +55,7 @@ func TestAuthHandlerServiceAccount(t *testing.T) {
 	for _, tt := range authTests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := tests.SimulateOpenShiftMaster(tt.openshiftResponse)
-			os.Setenv("CLUSTER_URL", server.URL)
+			t.Setenv("CLUSTER_URL", server.URL)
 			rr := httptest.NewRecorder()
 			AuthHandler(rr, r)
 
@@ -68,7 +67,9 @@ func TestAuthHandlerServiceAccount(t *testing.T) {
 			}
 			if rr.Code == http.StatusOK {
 				data := map[string]string{}
-				json.NewDecoder(rr.Body).Decode(&data)
+				if err := json.NewDecoder(rr.Body).Decode(&data); err != nil {
+					t.Fatalf("failed to decode response: %v", err)
+				}
 				if data["token"] != token {
 					t.Errorf("Incorrect token in response: %s", data)
 				}
@@ -81,10 +82,10 @@ func TestAuthHandlerUser(t *testing.T) {
 	r := httptest.NewRequest("GET", "/auth", nil)
 	mockServer := tests.NewMockOIDCServer()
 	defer mockServer.Close()
-	os.Setenv("DEX_URL", mockServer.Server.URL)
-	os.Setenv("DEX_CLIENT_ID", "test-client")
+	t.Setenv("DEX_URL", mockServer.Server.URL)
+	t.Setenv("DEX_CLIENT_ID", "test-client")
 	token, _ := mockServer.GenIDToken("test-client", "user1", []string{"group1", "group2"})
-	r.Header.Set("Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte("user1:" + token)))
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("user1:"+token)))
 
 	rr := httptest.NewRecorder()
 	AuthHandler(rr, r)

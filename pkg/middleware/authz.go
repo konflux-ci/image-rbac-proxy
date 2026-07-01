@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -44,7 +44,7 @@ func Authz(next http.Handler) http.Handler {
 				quay_namespace := strings.Split(repoName, "/")[0]
 				ocp_namespace := strings.Split(repoName, "/")[1]
 				if quay_namespace != os.Getenv("BACKEND_NAMESPACE") {
-					utils.ErrorHTTPResponse(w, utils.Unauthorized, "Proxy has no access to " + quay_namespace)
+					utils.ErrorHTTPResponse(w, utils.Unauthorized, "Proxy has no access to "+quay_namespace)
 					return
 				}
 
@@ -70,7 +70,7 @@ func Authz(next http.Handler) http.Handler {
 				// Check permission of the user
 				authorized := verifyUserPremission(username, groups, ocp_namespace)
 				if !authorized {
-					utils.ErrorHTTPResponse(w, utils.Unauthorized, "You do not have permission to read imagerepositories in " + ocp_namespace)
+					utils.ErrorHTTPResponse(w, utils.Unauthorized, "You do not have permission to read imagerepositories in "+ocp_namespace)
 					return
 				}
 			}
@@ -81,7 +81,7 @@ func Authz(next http.Handler) http.Handler {
 	})
 }
 
-func getToken(r *http.Request) (string) {
+func getToken(r *http.Request) string {
 	token := ""
 	authParts := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 
@@ -111,8 +111,8 @@ func verifyUserPremission(user string, groups []string, namespace string) bool {
 		// Define the permission we want to check
 		sar := &authorizationv1.SubjectAccessReview{
 			Spec: authorizationv1.SubjectAccessReviewSpec{
-				User:               user,
-				Groups:             groups,
+				User:   user,
+				Groups: groups,
 				ResourceAttributes: &authorizationv1.ResourceAttributes{
 					Group:     "appstudio.redhat.com",
 					Version:   "v1alpha1",

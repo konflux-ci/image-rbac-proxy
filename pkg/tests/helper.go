@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	authenticationv1 "k8s.io/api/authentication/v1"
 	authorizationv1 "k8s.io/api/authorization/v1"
-	jwt "github.com/dgrijalva/jwt-go"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
@@ -18,8 +18,8 @@ var (
 )
 
 func init() {
-	authenticationv1.AddToScheme(scheme)
-	authorizationv1.AddToScheme(scheme)
+	_ = authenticationv1.AddToScheme(scheme)
+	_ = authorizationv1.AddToScheme(scheme)
 }
 
 type Response struct {
@@ -27,7 +27,7 @@ type Response struct {
 	Body string
 }
 
-func SimulateOpenShiftMaster(responses []Response) (*httptest.Server) {
+func SimulateOpenShiftMaster(responses []Response) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var response Response
 		switch r.URL.Path {
@@ -38,7 +38,7 @@ func SimulateOpenShiftMaster(responses []Response) (*httptest.Server) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(response.Code)
-		w.Write([]byte(response.Body))
+		_, _ = w.Write([]byte(response.Body))
 	}))
 	return server
 }

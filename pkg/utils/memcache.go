@@ -17,7 +17,7 @@ type cacheClient interface {
 }
 
 type memCache struct {
-	client         *memcache.Client
+	client *memcache.Client
 }
 
 // Get retrieves a key from memcache
@@ -49,10 +49,11 @@ func (c memCache) Set(key string, val interface{}, ttl int) error {
 		return fmt.Errorf("unable to marshal item: %s", err)
 	}
 
+	expiration := int32(min(ttl, 1<<31-1)) // #nosec G115 -- TTL is bounded before conversion to memcache expiration seconds
 	item := &memcache.Item{
 		Key:        key,
 		Value:      bytes,
-		Expiration: int32(ttl),
+		Expiration: expiration,
 	}
 	err = c.client.Set(item)
 	if err != nil {
@@ -62,7 +63,7 @@ func (c memCache) Set(key string, val interface{}, ttl int) error {
 }
 
 // Generates a memcache client
-func InitCacheClient(servers []string){
+func InitCacheClient(servers []string) {
 	logrus.Infof("Memcache servers: %+v", servers)
 	CacheClient = memCache{
 		client: memcache.New(servers...),
