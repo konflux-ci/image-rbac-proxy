@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	authenticationv1 "k8s.io/api/authentication/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -41,7 +41,9 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 			"token": token,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(data)
+		if err := json.NewEncoder(w).Encode(data); err != nil {
+			logrus.Errorf("Error encoding auth response: %s", err)
+		}
 	} else {
 		utils.ErrorHTTPResponse(w, utils.Unauthorized, "Token is invalid or expired")
 	}
@@ -63,7 +65,7 @@ func VerifyServiceAccount(token string) string {
 	// Verify service account token
 	tr := &authenticationv1.TokenReview{
 		Spec: authenticationv1.TokenReviewSpec{
-			Token:     token,
+			Token: token,
 		},
 	}
 	response, err := client.AuthenticationV1().TokenReviews().Create(context.Background(), tr, metav1.CreateOptions{})

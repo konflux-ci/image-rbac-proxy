@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 

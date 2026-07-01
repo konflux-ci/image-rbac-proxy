@@ -25,7 +25,7 @@ type TokenAuth struct {
 }
 
 type tokenResponse struct {
-	Token       string
+	Token string
 }
 
 // NewTokenAuth constructs a TokenAuth struct
@@ -102,15 +102,15 @@ func (a *TokenAuth) requestToken(registryURL string, repo string) (string, error
 	params.Add("scope", fmt.Sprintf("repository:%s:%s", repo, transport.PullScope))
 	tokenURL.RawQuery = params.Encode()
 
-	// Get token
-	tokenReq, _ := http.NewRequest("GET", tokenURL.String(), nil)
+	// Get token from the backend registry's auth endpoint.
+	tokenReq, _ := http.NewRequest("GET", tokenURL.String(), nil) // #nosec G704 -- token URL comes from the configured backend registry challenge
 	tokenReq.SetBasicAuth(a.username, a.password)
-	resp, err := a.tokenClient.Do(tokenReq)
+	resp, err := a.tokenClient.Do(tokenReq) // #nosec G704 -- outbound request to configured registry backend is required for token exchange
 	if err != nil {
 		return "", fmt.Errorf("unable to request token from backend registry: %s", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("unable to read body from token response: %s", err)

@@ -24,7 +24,9 @@ func TestErrorHTTPResponse(t *testing.T) {
 				t.Errorf("Expected code %d, but got %d", tt.code, rr.Code)
 			}
 			var data ErrorResponse
-			json.NewDecoder(rr.Body).Decode(&data)
+			if err := json.NewDecoder(rr.Body).Decode(&data); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
 			if rr.Code != tt.code {
 				t.Errorf("Expected code %d, but got %d", tt.code, rr.Code)
 			}
