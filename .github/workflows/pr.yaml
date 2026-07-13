@@ -24,7 +24,7 @@ jobs:
       - name: Set up Go 1.x
         uses: actions/setup-go@v6
         with:
-          go-version: "1.26.4"
+          go-version: "1.26.5"
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7
         with:
@@ -54,7 +54,7 @@ jobs:
       - name: Set up Go 1.x
         uses: actions/setup-go@v6
         with:
-          go-version: "1.26.4"
+          go-version: "1.26.5"
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7
         with:
