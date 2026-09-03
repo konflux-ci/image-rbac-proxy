@@ -57,10 +57,10 @@ func (bp *BackendProxy) ProxyHandler(w http.ResponseWriter, r *http.Request) {
 func (bp *BackendProxy) Initialize(r *http.Request) {
 	// create the reverse proxy
 	bp.Proxy = &httputil.ReverseProxy{
-		Director: func(req *http.Request) {
-			req.URL.Host = bp.GetURL().Host
-			req.URL.Scheme = bp.GetURL().Scheme
-			req.Host = bp.GetURL().Host
+		Rewrite: func(r *httputil.ProxyRequest) {
+			r.SetURL(bp.GetURL())
+			r.Out.Host = bp.GetURL().Host
+			r.SetXForwarded()
 		},
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
 			logrus.WithError(err).Error("Backend request failed")
