@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20260422231931-4d751bb6e37c
-	github.com/coreos/go-oidc/v3 v3.20.0
+	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/go-containerregistry v0.22.0
 	github.com/sirupsen/logrus v1.10.2
