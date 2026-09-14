@@ -1,6 +1,6 @@
 module image-rbac-proxy
 
-go 1.27
+go 1.26.0
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20260422231931-4d751bb6e37c
