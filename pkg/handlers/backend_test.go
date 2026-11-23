@@ -51,7 +51,7 @@ func TestRegistryHandler(t *testing.T) {
 	}
 
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		expected := "Bearer token-for-test-foobar"
+		expected := "Bearer token-for-test-org/ns/comp"
 		if r.Header.Get("Authorization") != expected {
 			t.Errorf("Incorrect Authorization %s", r.Header)
 		}
@@ -65,11 +65,41 @@ func TestRegistryHandler(t *testing.T) {
 			bp := BackendProxy{URL: origin.URL, Auth: auth}
 			BackendRegistry = &bp
 
-			r := httptest.NewRequest("GET", "/v2/foobar/manifests/latest", nil)
+			r := httptest.NewRequest("GET", "/v2/org/ns/comp/manifests/latest", nil)
 			rr := httptest.NewRecorder()
 			http.HandlerFunc(RegistryHandler).ServeHTTP(rr, r)
 			if rr.Code != tt.expectedStatus {
 				t.Errorf("Expected code %d, but got %d", tt.expectedStatus, rr.Code)
+			}
+		})
+	}
+}
+
+func TestRegistryHandlerRejectsUnscopedPath(t *testing.T) {
+	called := false
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer origin.Close()
+	BackendRegistry = &BackendProxy{URL: origin.URL, Auth: NewTestAuth("test")}
+
+	paths := []string{
+		"/v2/foobar/manifests/latest",
+		"/v2/org/ns/comp/extra/manifests/latest",
+		"/v2/org/ns/comp/manifests/../../other/manifests/latest",
+	}
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			called = false
+			r := httptest.NewRequest("GET", path, nil)
+			rr := httptest.NewRecorder()
+			http.HandlerFunc(RegistryHandler).ServeHTTP(rr, r)
+			if rr.Code != http.StatusUnauthorized {
+				t.Errorf("Expected code %d, but got %d", http.StatusUnauthorized, rr.Code)
+			}
+			if called {
+				t.Error("backend was called for a path outside the repository schema")
 			}
 		})
 	}

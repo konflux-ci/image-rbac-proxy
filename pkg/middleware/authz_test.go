@@ -45,8 +45,36 @@ func TestAuthzNoRepo(t *testing.T) {
 	}
 }
 
+func TestAuthzRejectsUnscopedPath(t *testing.T) {
+	t.Setenv("BACKEND_NAMESPACE", "namespace1")
+	paths := []string{
+		"/v2/namespace1/manifests/latest",
+		"/v2/namespace1/tenant/app/extra/manifests/latest",
+		"/v2/namespace1/tenant/app/manifests/../../other/manifests/latest",
+	}
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			called := false
+			handler := Authz(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				called = true
+				w.WriteHeader(http.StatusOK)
+			}))
+			r := httptest.NewRequest("GET", path, nil)
+			r.Header.Set("Authorization", "Bearer "+tests.GenToken(time.Now(), "bar"))
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, r)
+			if rr.Code != http.StatusUnauthorized {
+				t.Errorf("Expected code %d, but got %d", http.StatusUnauthorized, rr.Code)
+			}
+			if called {
+				t.Error("authorized handler was called for a path outside the repository schema")
+			}
+		})
+	}
+}
+
 func TestAuthzInvalidNamespace(t *testing.T) {
-	r := httptest.NewRequest("GET", "/v2/namespace2/repo1/manifests/latest", nil)
+	r := httptest.NewRequest("GET", "/v2/namespace2/tenant/app/manifests/latest", nil)
 	r.Header.Set("Authorization", "Bearer valid-token")
 	rr := httptest.NewRecorder()
 	t.Setenv("BACKEND_NAMESPACE", "namespace1")
@@ -57,7 +85,7 @@ func TestAuthzInvalidNamespace(t *testing.T) {
 }
 
 func TestAuthz(t *testing.T) {
-	r := httptest.NewRequest("GET", "/v2/namespace1/repo1/manifests/latest", nil)
+	r := httptest.NewRequest("GET", "/v2/namespace1/tenant/app/manifests/latest", nil)
 	token := tests.GenToken(time.Now(), "bar")
 	r.Header.Set("Authorization", "Bearer "+token)
 	t.Setenv("BACKEND_NAMESPACE", "namespace1")
