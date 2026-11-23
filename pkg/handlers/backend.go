@@ -32,6 +32,10 @@ func RegistryHandler(w http.ResponseWriter, r *http.Request) {
 
 	bp := BackendRegistry
 	repoName := utils.RepoFromPath(r.URL.Path)
+	if repoName == "" {
+		utils.ErrorHTTPResponse(w, utils.Unauthorized, "Proxy has no access to the requested resource")
+		return
+	}
 
 	header, err := bp.Auth.AuthorizationHeader(bp, repoName)
 	if err != nil {

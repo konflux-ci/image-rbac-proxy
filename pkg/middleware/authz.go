@@ -41,10 +41,11 @@ func Authz(next http.Handler) http.Handler {
 					utils.ErrorHTTPResponse(w, utils.Unauthorized, "Proxy has no access to the requested resource")
 					return
 				}
-				quay_namespace := strings.Split(repoName, "/")[0]
-				ocp_namespace := strings.Split(repoName, "/")[1]
-				if quay_namespace != os.Getenv("BACKEND_NAMESPACE") {
-					utils.ErrorHTTPResponse(w, utils.Unauthorized, "Proxy has no access to "+quay_namespace)
+				parts := strings.Split(repoName, "/")
+				quayNamespace := parts[0]
+				ocpNamespace := parts[1]
+				if quayNamespace != os.Getenv("BACKEND_NAMESPACE") {
+					utils.ErrorHTTPResponse(w, utils.Unauthorized, "Proxy has no access to "+quayNamespace)
 					return
 				}
 
@@ -68,9 +69,9 @@ func Authz(next http.Handler) http.Handler {
 				}
 
 				// Check permission of the user
-				authorized := verifyUserPremission(username, groups, ocp_namespace)
+				authorized := verifyUserPremission(username, groups, ocpNamespace)
 				if !authorized {
-					utils.ErrorHTTPResponse(w, utils.Unauthorized, "You do not have permission to read imagerepositories in "+ocp_namespace)
+					utils.ErrorHTTPResponse(w, utils.Unauthorized, "You do not have permission to read imagerepositories in "+ocpNamespace)
 					return
 				}
 			}
