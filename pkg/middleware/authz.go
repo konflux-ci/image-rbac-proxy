@@ -83,13 +83,13 @@ func Authz(next http.Handler) http.Handler {
 }
 
 func getToken(r *http.Request) string {
-	token := ""
 	authParts := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 
-	if strings.ToLower(authParts[0]) == "bearer" {
-		token = authParts[1]
+	if len(authParts) == 2 && strings.EqualFold(authParts[0], "bearer") {
+		return authParts[1]
 	}
-	return token
+
+	return ""
 }
 
 func verifyUserPremission(user string, groups []string, namespace string) bool {

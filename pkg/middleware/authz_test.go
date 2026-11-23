@@ -35,6 +35,19 @@ func TestAuthzNoToken(t *testing.T) {
 	}
 }
 
+func TestAuthzMissingBearerValue(t *testing.T) {
+	t.Setenv("PROXY_URL", "https://fakeproxy")
+	r := httptest.NewRequest("GET", "/v2/org/ns/comp/manifests/latest", nil)
+	r.Header.Set("Authorization", "Bearer")
+	rr := httptest.NewRecorder()
+
+	authzHandler.ServeHTTP(rr, r)
+
+	if rr.Code != http.StatusUnauthorized {
+		t.Errorf("Expected code %d, but got %d", http.StatusUnauthorized, rr.Code)
+	}
+}
+
 func TestAuthzNoRepo(t *testing.T) {
 	r := httptest.NewRequest("GET", "/v2/", nil)
 	r.Header.Set("Authorization", "Bearer valid-token")
