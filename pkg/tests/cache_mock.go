@@ -44,3 +44,17 @@ func (c *MockCache) Set(key string, val interface{}, _ int) error {
 
 	return nil
 }
+
+// Delete removes an item from the mock cache
+func (c *MockCache) Delete(key string) error {
+	if c.Data == nil {
+		return errors.New("key does not exist in cache")
+	}
+
+	if _, ok := c.Data[key]; !ok {
+		return errors.New("key does not exist in cache")
+	}
+
+	delete(c.Data, key)
+	return nil
+}
