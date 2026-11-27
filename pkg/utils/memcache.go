@@ -14,6 +14,7 @@ var CacheClient cacheClient
 type cacheClient interface {
 	Get(key string, val interface{}) error
 	Set(key string, val interface{}, ttl int) error
+	Delete(key string) error
 }
 
 type memCache struct {
@@ -68,4 +69,17 @@ func InitCacheClient(servers []string) {
 	CacheClient = memCache{
 		client: memcache.New(servers...),
 	}
+}
+
+// Delete removes a key from memcache
+func (c memCache) Delete(key string) error {
+	if c.client == nil {
+		return errors.New("memcached client is not initialized")
+	}
+
+	if err := c.client.Delete(key); err != nil {
+		return fmt.Errorf("unable to delete key from memcache: %s", err)
+	}
+
+	return nil
 }

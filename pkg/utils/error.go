@@ -23,6 +23,9 @@ const Unauthorized = "UNAUTHORIZED"
 // Unavailable is returned when there is a backend service error
 const Unavailable = "UNAVAILABLE"
 
+// BadRequest is returned when the request cannot be accepted
+const BadRequest = "BAD_REQUEST"
+
 // ErrorString returns a JSON string representation of an ErrorResponse
 func ErrorString(code, msg string) string {
 	e := Error{
@@ -43,6 +46,8 @@ func ErrorHTTPResponse(w http.ResponseWriter, ec string, msg string) {
 		status = http.StatusUnauthorized
 	case Unavailable:
 		status = http.StatusServiceUnavailable
+	case BadRequest:
+		status = http.StatusBadRequest
 	default:
 		status = http.StatusInternalServerError
 	}

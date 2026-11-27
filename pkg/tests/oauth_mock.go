@@ -23,8 +23,17 @@ type MockOIDCServer struct {
 	publicKey     *rsa.PublicKey
 }
 
-// NewMockOIDCServer creates a new mock OIDC server
+// NewMockOIDCServer creates a new mock OIDC server.
 func NewMockOIDCServer() *MockOIDCServer {
+	return newMockOIDCServer("")
+}
+
+// NewMockOIDCServerWithPKCE requires a verifier during token exchange.
+func NewMockOIDCServerWithPKCE(expectedCodeVerifier string) *MockOIDCServer {
+	return newMockOIDCServer(expectedCodeVerifier)
+}
+
+func newMockOIDCServer(expectedCodeVerifier string) *MockOIDCServer {
 	// Generate RSA key pair for signing tokens
 	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
 
@@ -54,6 +63,19 @@ func NewMockOIDCServer() *MockOIDCServer {
 
 	// Token endpoint
 	mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+		// Enforce PKCE only for tests that provide an expected verifier.
+		if expectedCodeVerifier != "" {
+			if err := r.ParseForm(); err != nil {
+				http.Error(w, "invalid token request", http.StatusBadRequest)
+				return
+			}
+
+			if r.Form.Get("code_verifier") != expectedCodeVerifier {
+				http.Error(w, "invalid code verifier", http.StatusBadRequest)
+				return
+			}
+		}
+
 		response := map[string]interface{}{
 			"access_token": mock.TokenResponse.AccessToken,
 			"id_token":     mock.IDToken,

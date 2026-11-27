@@ -14,6 +14,7 @@ func TestErrorHTTPResponse(t *testing.T) {
 	}{
 		{Unavailable, http.StatusServiceUnavailable},
 		{Unauthorized, http.StatusUnauthorized},
+		{BadRequest, http.StatusBadRequest},
 		{"SomeUnexpectedCode", http.StatusInternalServerError},
 	}
 	for _, tt := range errorTests {
